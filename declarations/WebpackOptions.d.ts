@@ -75,6 +75,10 @@ export type Filename =
 			assetInfo?: import("../lib/Compilation").AssetInfo
 	  ) => string);
 /**
+ * Specifies the layer in which modules of this entrypoint are placed.
+ */
+export type Layer = null | string;
+/**
  * Add a comment in the UMD wrapper.
  */
 export type AuxiliaryComment = string | LibraryCustomUmdCommentObject;
@@ -143,6 +147,12 @@ export type ExternalItem =
 	| string
 	| {
 			/**
+			 * Specify externals depending on the layer.
+			 */
+			byLayer?: {
+				[k: string]: ExternalItem;
+			};
+			/**
 			 * The dependency used for the external.
 			 */
 			[k: string]:
@@ -154,7 +164,11 @@ export type ExternalItem =
 				  };
 	  }
 	| ((
-			data: {context: string; request: string},
+			data: {
+				context: string;
+				request: string;
+				contextInfo: import("../lib/ModuleFactory").ModuleFactoryCreateDataContextInfo;
+			},
 			callback: (err?: Error, result?: string) => void
 	  ) => void);
 /**
@@ -893,6 +907,10 @@ export interface EntryDescription {
 	 */
 	import: EntryItem;
 	/**
+	 * Specifies the layer in which modules of this entrypoint are placed.
+	 */
+	layer?: Layer;
+	/**
 	 * Options for library.
 	 */
 	library?: LibraryOptions;
@@ -980,6 +998,10 @@ export interface Experiments {
 	 * Support WebAssembly as asynchronous EcmaScript Module.
 	 */
 	asyncWebAssembly?: boolean;
+	/**
+	 * Enable module and chunk layers.
+	 */
+	layers?: boolean;
 	/**
 	 * Allow output javascript files as module source type.
 	 */
@@ -1162,6 +1184,14 @@ export interface RuleSetRule {
 	 * Match the issuer of the module (The module pointing to this module).
 	 */
 	issuer?: RuleSetConditionOrConditionsAbsolute;
+	/**
+	 * Match layer of the issuer of this module (The module pointing to this module).
+	 */
+	issuerLayer?: RuleSetConditionOrConditions;
+	/**
+	 * Specifies the layer in which the module should be placed in.
+	 */
+	layer?: string;
 	/**
 	 * Shortcut for use.loader.
 	 */
@@ -1635,6 +1665,10 @@ export interface OptimizationSplitChunksCacheGroup {
 	 * Sets the hint for chunk id.
 	 */
 	idHint?: string;
+	/**
+	 * Assign modules to a cache group by module layer.
+	 */
+	layer?: RegExp | string | Function;
 	/**
 	 * Maximum number of requests which are accepted for on-demand loading.
 	 */
@@ -2188,6 +2222,10 @@ export interface StatsOptions {
 	 */
 	groupModulesByExtension?: boolean;
 	/**
+	 * Group modules by their layer.
+	 */
+	groupModulesByLayer?: boolean;
+	/**
 	 * Group modules by their path.
 	 */
 	groupModulesByPath?: boolean;
@@ -2353,6 +2391,10 @@ export interface EntryDescriptionNormalized {
 	 * Module(s) that are loaded upon startup. The last one is exported.
 	 */
 	import?: string[];
+	/**
+	 * Specifies the layer in which modules of this entrypoint are placed.
+	 */
+	layer?: Layer;
 	/**
 	 * Options for library.
 	 */
